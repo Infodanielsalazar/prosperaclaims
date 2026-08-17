@@ -15,17 +15,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Replace old Google Calendar booking link
+      - name: Replace Google Calendar booking link
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p = Path('index.html')
           text = p.read_text()
-          old = 'https://calendar.app.google/fM6s1QX8cBXkA5Wm9'
-          new = 'https://calendar.app.google/WVzZTbtqrUtEFaL3A'
-          if old not in text:
-              raise SystemExit('Old calendar link not found; no change made.')
-          p.write_text(text.replace(old, new))
+          new = 'https://calendar.app.google/Q8YByrSeFzoiBN286'
+          updated, count = re.subn(r'https://calendar\.app\.google/[A-Za-z0-9]+', new, text)
+          if count == 0:
+              raise SystemExit('No Google Calendar booking link found; no change made.')
+          p.write_text(updated)
+          print(f'Updated {count} calendar link(s).')
           PY
 
       - name: Commit updated website
@@ -33,5 +35,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Connect website to Google Calendar booking page"
+          git commit -m "Connect website to new Google Calendar booking page"
           git push
