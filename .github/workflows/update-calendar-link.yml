@@ -22,7 +22,7 @@ jobs:
           import re
           p = Path('index.html')
           text = p.read_text()
-          new = 'https://calendar.app.google/Q8YByrSeFzoiBN286'
+          new = 'https://calendar.app.google/2infsewhhG8o6Xdr8'
           updated, count = re.subn(r'https://calendar\.app\.google/[A-Za-z0-9]+', new, text)
           if count == 0:
               raise SystemExit('No Google Calendar booking link found; no change made.')
