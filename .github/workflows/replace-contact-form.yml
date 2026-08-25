@@ -1,0 +1,42 @@
+name: Replace contact form with booking CTA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/replace-contact-form.yml'
+permissions:
+  contents: write
+jobs:
+  update-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace form with booking CTA
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text()
+          old=re.search(r'<div class="divider"></div><div class="section" id="contact-section">.*?<div class="closing">', s, flags=re.S)
+          if not old:
+              raise SystemExit('contact section not found')
+          new='''<div class="divider"></div><div class="section" id="contact-section"><div class="wrap"><div class="cta-block"><div class="section-label">Free consultation</div><h2>Ready to Find Out If You Have Money Waiting?</h2><p>Book a free consultation with Prospera Claims. Pick a time that works for you. No upfront cost. No obligation.</p><a class="btn" href="https://calendar.app.google/2infsewhhG8o6Xdr8" target="_blank" rel="noopener">BOOK MY FREE CONSULTATION &rarr;</a><span class="cta-note">Prefer to talk now? <a href="tel:+18138030068" style="color:#93c5fd;text-decoration:none;font-weight:700">(813) 803-0068</a> &bull; <a href="mailto:dsalazar@prosperaclaims.com" style="color:#93c5fd;text-decoration:none;font-weight:700">dsalazar@prosperaclaims.com</a></span></div></div></div>
+<div class="closing">'''
+          s=s[:old.start()]+new+s[old.end():]
+          # Make all primary consultation buttons go directly to booking page.
+          s=s.replace('<button class="nav-cta" onclick="scrollToContact()">Free Consultation</button>', '<a class="nav-cta" href="https://calendar.app.google/2infsewhhG8o6Xdr8" target="_blank" rel="noopener">Free Consultation</a>')
+          s=s.replace('<button class="btn" onclick="scrollToContact()">Find Out If You Have Money Waiting</button>', '<a class="btn" href="https://calendar.app.google/2infsewhhG8o6Xdr8" target="_blank" rel="noopener">Find Out If You Have Money Waiting</a>')
+          s=s.replace('<button class="btn" onclick="scrollToContact()">Yes, Check My Case Now</button>', '<a class="btn" href="https://calendar.app.google/2infsewhhG8o6Xdr8" target="_blank" rel="noopener">Yes, Check My Case Now</a>')
+          s=s.replace('<button class="btn" onclick="scrollToContact()">Start Your Free Consultation</button>', '<a class="btn" href="https://calendar.app.google/2infsewhhG8o6Xdr8" target="_blank" rel="noopener">Start Your Free Consultation</a>')
+          # Remove obsolete form submission function while keeping FAQ JS.
+          s=re.sub(r'function submitForm\(\)\{.*?\}(?=</script>)', '', s, flags=re.S)
+          p.write_text(s)
+          PY
+      - name: Commit website update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Replace broken lead form with calendar booking CTA"
+          git push
